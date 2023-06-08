@@ -1,0 +1,7 @@
+{
+  "name": "gscengland.org",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "react-vite"
+}
