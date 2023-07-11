@@ -1,0 +1,132 @@
+:root {
+  --padding: 20px;
+}
+header {
+  box-shadow: 0 1px 10px rgba(var(--ion-color-dark-rgb), 0.2);
+}
+
+.full-width {
+  width: 100%;
+}
+.text-center {
+  text-align: center;
+}
+
+.hvc {
+  // display: flex;
+  // // flex-direction: column;
+  // align-items: center;
+  // justify-content: center;
+  min-height: 100vh;
+  // margin: auto;
+}
+
+.menu {
+  list-style-type: none;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: end;
+  padding-inline-start: 0;
+
+  li:nth(1) {
+    margin-left: 0;
+  }
+
+  li + li {
+    margin-left: 0.5em;
+  }
+  li {
+    padding: 8px 12px;
+    border-radius: 5px;
+  }
+  li.active {
+    background: rgba(var(--ion-color-primary-rgb), 0.2);
+  }
+  li:hover {
+    background: var(--ion-color-primary);
+    color: var(--ion-color-primary-contrast);
+  }
+}
+.m-auto {
+  margin: auto;
+}
+
+.home-slider {
+  text-align: center;
+  swiper-slide {
+    min-height: 600px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-size: cover;
+    background-position: center center;
+    color: var(--ion-color-dark-contrast);
+    text-shadow: 1px 1px 6px var(--ion-color-dark);
+    h3 {
+      font-size: 2.2em;
+    }
+  }
+
+  @media screen and (max-width: 570px) {
+    swiper-slide {
+      min-height: 400px;
+      padding-left: var(--padding);
+      padding-right: var(--padding);
+      h3 {
+        font-size: 1.5em;
+      }
+    }
+  }
+}
+
+swiper-container {
+  --swiper-navigation-color: #fff;
+}
+swiper-slide {
+  background-image: linear-gradient(rgb(48, 0, 58), rgb(92, 1, 86));
+}
+
+.welcome {
+  background: radial-gradient(rgb(241, 236, 236), rgb(241, 239, 239));
+  text-align: center;
+  padding: 4em 0 3em 0;
+  h2 {
+    font-size: 3em;
+  }
+  p {
+    font-size: 1.5em;
+  }
+  @media screen and (max-width: 570px) {
+    padding: 2em 1em;
+    h2 {
+      font-size: 2.2em;
+    }
+    p {
+      font-size: 1.3em;
+    }
+  }
+}
+
+.card {
+  text-align: center;
+  padding: 10px;
+  margin: 5px;
+  height: 100%;
+  box-shadow: 0 0 15px rgba(var(--ion-color-dark-rgb), 0.2);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  ion-icon {
+    font-size: 64px;
+    color: var(--ion-color-primary);
+  }
+}
+
+.contact-page {
+  ion-list {
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.151);
+    padding-bottom: 1em;
+  }
+}
