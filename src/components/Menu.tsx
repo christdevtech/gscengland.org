@@ -1,4 +1,6 @@
 import {
+  IonAccordion,
+  IonAccordionGroup,
   IonContent,
   IonFooter,
   IonIcon,
@@ -9,12 +11,15 @@ import {
   IonMenu,
   IonMenuToggle,
   IonNote,
+  IonToast,
 } from "@ionic/react";
 
 import { useHistory, useLocation } from "react-router-dom";
 import "./Menu.css";
 import logo from "../assets/img/logo.png";
 import { useGlobalAuth } from "../AuthContext";
+import { heartOutline } from "ionicons/icons";
+import { useEffect, useState } from "react";
 
 const labels = ["Family", "Friends"];
 
@@ -22,37 +27,96 @@ const Menu: React.FC = () => {
   const location = useLocation();
   const history = useHistory();
 
-  const { appPages, quickContact } = useGlobalAuth() ?? {};
+  const { appPages, quickContact, currentMessage, toastMessage } =
+    useGlobalAuth() ?? {};
+
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    setIsOpen(true);
+  }, [currentMessage]);
 
   return (
     <IonMenu contentId="main" type="overlay">
       <IonContent>
-        <img src={logo} alt="" onClick={() => history.push("/")} />
-
         <IonList id="inbox-list">
-          {appPages?.map((appPage, index) => {
-            return (
-              <IonMenuToggle key={index} autoHide={false}>
-                <IonItem
-                  className={
-                    location.pathname === appPage.url ? "selected" : ""
-                  }
-                  routerLink={appPage.url}
-                  routerDirection="none"
-                  lines="none"
-                  detail={false}
-                >
-                  <IonIcon
-                    aria-hidden="true"
-                    slot="start"
-                    icon={appPage.icon}
-                  />
-                  <IonLabel>{appPage.title}</IonLabel>
-                </IonItem>
-              </IonMenuToggle>
-            );
-          })}
+          <IonAccordionGroup>
+            {appPages?.map((websitePage, index) =>
+              websitePage.dropdown ? (
+                <IonAccordion key={index}>
+                  <IonItem
+                    className={
+                      location.pathname.includes(websitePage.url)
+                        ? "selected"
+                        : ""
+                    }
+                    slot="header"
+                    lines="none">
+                    <IonIcon
+                      aria-hidden="true"
+                      slot="start"
+                      icon={websitePage.icon}
+                    />
+                    <IonLabel> {websitePage.title}</IonLabel>
+                  </IonItem>
+
+                  <div slot="content" className="ion-padding-start">
+                    <IonList className="dropdown">
+                      {websitePage.dropdown.map((dropdownItem, index) => (
+                        <IonMenuToggle autoHide={false} key={index}>
+                          <IonItem
+                            className={
+                              location.pathname === dropdownItem.url
+                                ? "selected"
+                                : ""
+                            }
+                            routerLink={dropdownItem.url}
+                            lines="full"
+                            detail={false}>
+                            {dropdownItem.title}
+                          </IonItem>
+                        </IonMenuToggle>
+                      ))}
+                    </IonList>
+                  </div>
+                </IonAccordion>
+              ) : (
+                <IonMenuToggle key={index} autoHide={false}>
+                  <IonItem
+                    className={
+                      location.pathname === websitePage.url ? "selected" : ""
+                    }
+                    routerLink={websitePage.url}
+                    routerDirection="none"
+                    lines="none"
+                    detail={false}>
+                    <IonIcon
+                      aria-hidden="true"
+                      slot="start"
+                      icon={websitePage.icon}
+                    />
+                    <IonLabel>{websitePage.title}</IonLabel>
+                  </IonItem>
+                </IonMenuToggle>
+              )
+            )}
+
+            <IonMenuToggle>
+              <IonItem
+                lines="none"
+                className={location.pathname === "/give" ? "selected" : ""}
+                routerLink="/give">
+                <IonIcon icon={heartOutline} slot="start"></IonIcon>
+                Give Now
+              </IonItem>
+            </IonMenuToggle>
+          </IonAccordionGroup>
         </IonList>
+        <IonToast
+          isOpen={isOpen}
+          duration={5000}
+          onDidDismiss={() => setIsOpen(false)}
+          message={currentMessage}></IonToast>
       </IonContent>
       <IonFooter>
         <IonList id="labels-list">

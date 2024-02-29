@@ -90,8 +90,7 @@ const Auth = () => {
                   shape="round"
                   fill="outline"
                   color={"dark"}
-                  disabled={loading}
-                >
+                  disabled={loading}>
                   Sign In
                 </IonButton>
               </IonList>

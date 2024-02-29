@@ -1,16 +1,18 @@
 import { IonContent, IonPage } from "@ionic/react";
 import React from "react";
-import TopMenu from "../components/TopMenu";
+import TopMenu from "../../components/TopMenu";
+import Footer from "../../components/Footer";
 
-const OurLeader = () => {
+const Beliefs = () => {
   return (
     <IonPage>
       <IonContent>
         <TopMenu />
-        Our Leader
+        <h1>Beliefs</h1>
+        <Footer />
       </IonContent>
     </IonPage>
   );
 };
 
-export default OurLeader;
+export default Beliefs;

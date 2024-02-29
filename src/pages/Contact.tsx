@@ -1,102 +1,103 @@
 import {
   IonButton,
+  IonChip,
   IonCol,
   IonContent,
   IonGrid,
+  IonIcon,
   IonInput,
   IonItem,
+  IonItemOption,
+  IonItemOptions,
+  IonItemSliding,
+  IonLabel,
   IonList,
   IonPage,
   IonRow,
   IonTextarea,
 } from "@ionic/react";
-import React from "react";
+import React, { useState } from "react";
 import TopMenu from "../components/TopMenu";
 import { useForm } from "react-hook-form";
+import Container from "../components/Container";
+import PageTop from "../components/PageTop";
+import {
+  checkmarkCircle,
+  homeOutline,
+  logoWhatsapp,
+  mailOutline,
+  phonePortrait,
+} from "ionicons/icons";
+import Footer from "../components/Footer";
+import PageHeader, { PageHeroHeaderProps } from "../components/PageHeader";
+import bgImage from "../assets/img/prayer1.jpg";
+import ContactForm from "../components/ContactForm";
+import { useGlobalAuth } from "../AuthContext";
 
 const Contact = () => {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm();
-
-  const onContactFormSubmit = (data: any) => {
-    console.log(data);
+  const contact = (link: string) => {
+    window.open(link, "_blank", "noreferrer");
   };
+
+  const contactHeroProps: PageHeroHeaderProps = {
+    title: ["Reach Out", "Contact Us"],
+    subText: "Connect to everything God has for your life",
+    bgImg: bgImage,
+  };
+
+  const { sitelinks } = useGlobalAuth() ?? {};
+
   return (
     <IonPage className="contact-page">
       <IonContent>
         <TopMenu />
-        <IonGrid className="">
-          <IonRow>
-            <IonCol
-              sizeXs="12"
-              sizeLg="10"
-              sizeMd="11"
-              sizeSm="12"
-              sizeXl="9"
-              className="m-auto "
-            >
-              {" "}
-              Contact Us{" "}
-              <form onSubmit={handleSubmit(onContactFormSubmit)}>
-                <IonList>
-                  <IonItem>
-                    <IonInput
-                      label="Name"
-                      labelPlacement="floating"
-                      placeholder="Enter Name"
-                      {...register("name", { required: true })}
-                    ></IonInput>
-                  </IonItem>
-                  {errors.name ? <span>Name is required</span> : null}
-
-                  <IonItem>
-                    <IonInput
-                      type="email"
-                      label="Email"
-                      labelPlacement="floating"
-                      placeholder="Enter Email Address"
-                      {...register("email", { required: true })}
-                    ></IonInput>
-                  </IonItem>
-                  {errors.email ? <span>Your Email is required</span> : null}
-
-                  <IonItem>
-                    <IonInput
-                      type="tel"
-                      label="Phone Number"
-                      labelPlacement="floating"
-                      placeholder="Enter Phone Number"
-                      {...register("phone", { required: true })}
-                    ></IonInput>
-                  </IonItem>
-                  {errors.phone ? (
-                    <span>Your Phone Number is required</span>
-                  ) : null}
-
-                  <IonItem>
-                    <IonTextarea
-                      label="Your Message"
-                      labelPlacement="floating"
-                      placeholder="Enter your message"
-                      rows={5}
-                      {...register("message", { required: true })}
-                    ></IonTextarea>
-                  </IonItem>
-                  <IonButton
-                    type="submit"
-                    className="ion-margin-start ion-margin-top"
-                    shape="round"
-                  >
-                    Send
-                  </IonButton>
-                </IonList>
-              </form>
-            </IonCol>{" "}
-          </IonRow>
-        </IonGrid>
+        <PageHeader {...contactHeroProps} />
+        <Container className="contact-form">
+          <div>
+            {sitelinks && (
+              <IonGrid>
+                <IonRow className="items ion-text-center">
+                  <IonCol>
+                    <div className="item">
+                      <IonIcon icon={homeOutline}></IonIcon>
+                      <h2>Sunday at Church</h2>
+                      <p
+                        dangerouslySetInnerHTML={{
+                          __html: sitelinks.address,
+                        }}></p>
+                    </div>
+                  </IonCol>
+                  <IonCol>
+                    <div className="item">
+                      <IonIcon icon={phonePortrait}></IonIcon>
+                      <h2>Phone</h2>
+                      <IonChip
+                        onClick={() => contact(`tel:${sitelinks.phone}`)}>
+                        {sitelinks.phone}
+                      </IonChip>
+                    </div>
+                  </IonCol>
+                  <IonCol>
+                    <div className="item">
+                      <IonIcon icon={mailOutline}></IonIcon>
+                      <h2>Email</h2>
+                      <IonChip
+                        onClick={() => contact(`mailto:${sitelinks.email}`)}>
+                        {sitelinks.email}
+                      </IonChip>
+                    </div>
+                  </IonCol>
+                </IonRow>
+                <IonRow>
+                  <IonCol style={{ padding: "0", margin: "0" }}>
+                    <ContactForm title="Contact Us" />
+                  </IonCol>
+                </IonRow>
+              </IonGrid>
+            )}
+          </div>
+        </Container>
+        <Footer />
       </IonContent>
     </IonPage>
   );

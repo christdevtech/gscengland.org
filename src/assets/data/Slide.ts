@@ -3,13 +3,15 @@ import group1 from "../img/group-1.jpg";
 import group2 from "../img/group.jpg";
 import teaching from "../img/teaching.jpg";
 import community from "../img/community.jpg";
-import {
-  extensionPuzzleSharp,
-  funnelSharp,
-  giftSharp,
-  peopleSharp,
-  walletSharp,
-} from "ionicons/icons";
+import prayer from "../img/prayer.jpg";
+import prayer1 from "../img/photo_2023-06-19_21-22-03.jpg";
+import cardAbout from "../img/cardAbout.jpg";
+import cardGive from "../img/cardGive.jpg";
+import cardWatch from "../img/cardWatch.jpg";
+
+import give from "../img/photo_2023-06-19_21-22-07 (2).jpg";
+import newMems from "../img/photo_2023-06-19_21-21-55 (2).jpg";
+import { extensionPuzzleSharp, giftSharp, peopleSharp } from "ionicons/icons";
 
 interface HomeSlideData {
   headline: string;
@@ -47,44 +49,53 @@ export const sliderData: HomeSlideData[] = [
 ];
 
 interface CardData {
-  icon: string;
+  icon?: string;
   headline: string;
-  smallText: string;
-  button: {
-    text: string;
-    url: string;
-  };
+  bg?: string;
+  url: string;
 }
 
 export const cardData: CardData[] = [
   {
-    icon: peopleSharp,
-    headline: "Become A Volunteer",
-    smallText:
-      "Whoever is kind to the poor lends to the Lord, and he will reward them for what they have done.",
-    button: {
-      text: "Join us now",
-      url: "/about",
-    },
+    headline: "About",
+    bg: prayer,
+    url: "/about",
   },
   {
-    icon: giftSharp,
-    headline: "Donate To Support",
-    smallText:
-      "Whoever is kind to the poor lends to the Lord, and he will reward them for what they have done.",
-    button: {
-      text: "Join us now",
-      url: "/give",
-    },
+    headline: "Watch",
+    bg: cardWatch,
+    url: "https://www.youtube.com/@gatewaysalvationchurch",
   },
   {
-    icon: extensionPuzzleSharp,
-    headline: "Become A Partner",
-    smallText:
-      " I can do all things through him who strengthens me.Worry does not empty tomorrow of its sorrows; it empties today of its strength.",
-    button: {
-      text: "Join us now",
-      url: "/contact",
-    },
+    headline: "Give",
+    bg: give,
+    url: "/give",
+  },
+  {
+    headline: "Contact",
+    bg: cardAbout,
+    url: "/contact",
+  },
+];
+export const cardData1: CardData[] = [
+  {
+    headline: "New Members",
+    bg: newMems,
+    url: "/new-members",
+  },
+  {
+    headline: "Prayer Requests",
+    bg: prayer1,
+    url: "/contact",
+  },
+  {
+    headline: "Share Your Testimony",
+    bg: cardGive,
+    url: "/contact",
+  },
+  {
+    headline: "Contact",
+    bg: community,
+    url: "/contact",
   },
 ];

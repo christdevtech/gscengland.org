@@ -4,8 +4,8 @@ import {
   signInWithEmailAndPassword,
 } from "firebase/auth";
 import { createContext, useContext, useEffect, useState } from "react";
-import { auth } from "./firebase";
-import { AppPage } from "./interfaces";
+import { auth, db } from "./firebase";
+import { AppPage, GSCEvent, MonthData, SiteLinks } from "./interfaces";
 import {
   homeOutline,
   peopleOutline,
@@ -15,50 +15,78 @@ import {
   lockOpenOutline,
   logoWhatsapp,
   mailOutline,
+  personAddOutline,
+  calendarOutline,
 } from "ionicons/icons";
+import mImg from "./assets/img/october.jpg";
+import newsletter from "./assets/SEP NEWSLETTER.pdf";
+import { collection, doc, onSnapshot } from "firebase/firestore";
+
 interface AuthContextValue {
   appPages: AppPage[];
   quickContact: AppPage[];
   user: User | null;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => void;
+  monthImg: string;
+  newsletter: string;
+  homeSlides: { h1: string; bgImg: string }[];
+  currentMessage: string;
+  toastMessage: (text: string) => void;
+  sitelinks: SiteLinks | undefined;
+  monthData: MonthData | undefined;
+  GSCEvents: GSCEvent[];
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+const commonPages = [
+  {
+    title: "Home",
+    url: "/home",
+    icon: homeOutline,
+  },
+
+  {
+    title: "About",
+    url: "/about",
+    icon: peopleOutline,
+    dropdown: [
+      { title: "About GSC", url: "/about" },
+      { title: "Our Leadership", url: "/about/leader" },
+    ],
+  },
+  {
+    title: "Events",
+    url: "/events",
+    icon: calendarOutline,
+  },
+
+  {
+    title: "New Members",
+    url: "/new-members",
+    icon: personAddOutline,
+  },
+
+  {
+    title: "Contact Us",
+    url: "/contact",
+    icon: callOutline,
+  },
+];
 
 export const AuthContextProvider: React.FC<React.PropsWithChildren<{}>> = ({
   children,
 }: React.PropsWithChildren<{}>) => {
+  const [appVersion, setAppVersion] = useState("1.0.0");
   const [user, setUser] = useState<User | null>(null);
-  const [appPages, setAppPages] = useState<AppPage[]>([
-    {
-      title: "Home",
-      url: "/",
-      icon: homeOutline,
-    },
-
-    {
-      title: "About",
-      url: "/about",
-      icon: peopleOutline,
-    },
-    {
-      title: "Give",
-      url: "/give",
-      icon: giftOutline,
-    },
-    {
-      title: "Our Leader",
-      url: "/leader",
-      icon: heartOutline,
-    },
-    {
-      title: "Contact Us",
-      url: "/contact",
-      icon: callOutline,
-    },
-  ]);
-  const [quickContact, setQuickContact] = useState<AppPage[]>([
+  const [appPages, setAppPages] = useState<AppPage[]>([]);
+  const [monthImg, setMonthImg] = useState(mImg);
+  const [currentMessage, setCurrentMessage] = useState(
+    "Welcome to GSC England"
+  );
+  const [monthData, setMonthData] = useState<MonthData>();
+  const [sitelinks, setSiteinks] = useState<SiteLinks>();
+  const quickContact: AppPage[] = [
     {
       title: "Call Now",
       url: "tel:+447448847020",
@@ -74,7 +102,10 @@ export const AuthContextProvider: React.FC<React.PropsWithChildren<{}>> = ({
       url: "mailto:admin@gscengland.org",
       icon: mailOutline,
     },
-  ]);
+  ];
+  const [GSCEvents, setGSCEvents] = useState<GSCEvent[]>([]);
+
+  const homeSlides = [{ h1: "Peace", bgImg: "" }];
 
   const signIn = async (email: string, password: string) => {
     console.log("signing in");
@@ -92,80 +123,58 @@ export const AuthContextProvider: React.FC<React.PropsWithChildren<{}>> = ({
     }
   };
 
+  const getSitelinks = async () => {
+    const sitelinksColRef = collection(db, "data");
+    const sitelinksDocRef = doc(sitelinksColRef, "sitelinks");
+
+    onSnapshot(sitelinksDocRef, (sitelinksdoc) => {
+      const sitelinksdata = sitelinksdoc.data() as SiteLinks;
+      setSiteinks(sitelinksdata);
+    });
+  };
+
+  const getMonthData = async () => {
+    const monthDataColRef = collection(db, "monthData");
+    const currentMonth = new Date().toISOString().slice(0, 7);
+    const monthDocRef = doc(monthDataColRef, currentMonth);
+
+    onSnapshot(monthDocRef, (monthdoc) => {
+      const monthdata = monthdoc.data() as MonthData;
+      setMonthData(monthdata);
+      console.log(monthdata);
+    });
+  };
+
   const modifyAppPages = () => {
     if (user?.email === "admin@gscengland.org") {
-      setAppPages([
-        {
-          title: "Admin",
-          url: "/admin",
-          icon: lockOpenOutline,
-        },
-        {
-          title: "Home",
-          url: "/",
-          icon: homeOutline,
-        },
-
-        {
-          title: "About",
-          url: "/about",
-          icon: peopleOutline,
-        },
-        {
-          title: "Give",
-          url: "/give",
-          icon: giftOutline,
-        },
-        {
-          title: "Our Leader",
-          url: "/leader",
-          icon: heartOutline,
-        },
-        {
-          title: "Contact Us",
-          url: "/contact",
-          icon: callOutline,
-        },
-      ]);
+      commonPages.unshift({
+        title: "Admin",
+        url: "/admin",
+        icon: lockOpenOutline,
+      });
     } else {
-      setAppPages([
-        {
-          title: "Home",
-          url: "/",
-          icon: homeOutline,
-        },
-
-        {
-          title: "About",
-          url: "/about",
-          icon: peopleOutline,
-        },
-        {
-          title: "Give",
-          url: "/give",
-          icon: giftOutline,
-        },
-        {
-          title: "Our Leader",
-          url: "/leader",
-          icon: heartOutline,
-        },
-        {
-          title: "Contact Us",
-          url: "/contact",
-          icon: callOutline,
-        },
-      ]);
+      const adminPageIndex = commonPages.findIndex(
+        (page) => page.title === "Admin"
+      );
+      if (adminPageIndex !== -1) {
+        commonPages.splice(adminPageIndex, 1);
+      }
     }
+
+    setAppPages(commonPages);
   };
 
   const signOut = () => {
     auth.signOut();
   };
 
+  const toastMessage = (text: string) => {
+    setCurrentMessage(text);
+  };
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      console.log(currentUser);
+      // console.log(currentUser);
       setUser(currentUser);
     });
 
@@ -175,12 +184,31 @@ export const AuthContextProvider: React.FC<React.PropsWithChildren<{}>> = ({
   }, []);
 
   useEffect(() => {
+    getSitelinks();
+    getMonthData();
+  }, []);
+
+  useEffect(() => {
     modifyAppPages();
   }, [user]);
 
   return (
     <AuthContext.Provider
-      value={{ user, appPages, signIn, signOut, quickContact }}
+      value={{
+        user,
+        appPages,
+        signIn,
+        signOut,
+        quickContact,
+        monthImg,
+        newsletter,
+        homeSlides,
+        currentMessage,
+        toastMessage,
+        sitelinks,
+        monthData,
+        GSCEvents,
+      }}
     >
       {children}
     </AuthContext.Provider>
