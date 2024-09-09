@@ -20,7 +20,7 @@ import {
 } from "ionicons/icons";
 import mImg from "./assets/img/october.jpg";
 import newsletter from "./assets/SEP NEWSLETTER.pdf";
-import { collection, doc, onSnapshot } from "firebase/firestore";
+import { collection, doc, getDocs, onSnapshot } from "firebase/firestore";
 
 interface AuthContextValue {
   appPages: AppPage[];
@@ -36,6 +36,7 @@ interface AuthContextValue {
   sitelinks: SiteLinks | undefined;
   monthData: MonthData | undefined;
   GSCEvents: GSCEvent[];
+  getGSCEvents: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -123,6 +124,16 @@ export const AuthContextProvider: React.FC<React.PropsWithChildren<{}>> = ({
     }
   };
 
+  const getGSCEvents = async () => {
+    const querySnapshot = await getDocs(collection(db, "events"));
+    let GSCEventTemp: GSCEvent[] = [];
+    querySnapshot.forEach((doc) => {
+      const event: GSCEvent = doc.data() as GSCEvent;
+      GSCEventTemp.push(event);
+    });
+    setGSCEvents(GSCEventTemp);
+  };
+
   const getSitelinks = async () => {
     const sitelinksColRef = collection(db, "data");
     const sitelinksDocRef = doc(sitelinksColRef, "sitelinks");
@@ -186,10 +197,14 @@ export const AuthContextProvider: React.FC<React.PropsWithChildren<{}>> = ({
   useEffect(() => {
     getSitelinks();
     getMonthData();
+    getGSCEvents();
   }, []);
 
   useEffect(() => {
     modifyAppPages();
+    getSitelinks();
+    getMonthData();
+    getGSCEvents();
   }, [user]);
 
   return (
@@ -208,6 +223,7 @@ export const AuthContextProvider: React.FC<React.PropsWithChildren<{}>> = ({
         sitelinks,
         monthData,
         GSCEvents,
+        getGSCEvents,
       }}
     >
       {children}

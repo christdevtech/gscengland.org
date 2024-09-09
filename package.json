@@ -21,6 +21,7 @@
     "@ionic/react-router": "^7.0.0",
     "@types/react-router": "^5.1.20",
     "@types/react-router-dom": "^5.3.3",
+    "@types/swiper": "^6.0.0",
     "animate.css": "^4.1.1",
     "axios": "^1.5.0",
     "firebase": "^9.22.2",
@@ -31,7 +32,7 @@
     "react-hook-form": "^7.44.3",
     "react-router": "^5.3.4",
     "react-router-dom": "^5.3.4",
-    "swiper": "^9.3.2"
+    "swiper": "^9.4.1"
   },
   "devDependencies": {
     "@capacitor/cli": "5.0.4",

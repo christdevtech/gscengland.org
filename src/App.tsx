@@ -43,8 +43,8 @@ import Beliefs from "./pages/about/Beliefs";
 import Vision from "./pages/about/Vision";
 import Dashboard from "./pages/auth/Dashboard";
 import TestPage from "./pages/TestPage";
-import GSCEvent from "./pages/GSCEvent";
 import EventComposer from "./pages/auth/EventComposer";
+import GSCSingleEvent from "./pages/GSCEvent";
 
 setupIonicReact();
 
@@ -91,12 +91,13 @@ const App: React.FC = () => {
               <Route path="/events" exact={true}>
                 <GSCEvents />
               </Route>
-              <Route path="/event-composer/:eventId" exact={true}>
-                <EventComposer />
-              </Route>
 
               <Route path={"/events/:eventId"} exact={true}>
-                <GSCEvent />
+                <GSCSingleEvent />
+              </Route>
+
+              <Route path="/event-composer/:eventId" exact={true}>
+                <EventComposer />
               </Route>
 
               <Route path="/salvation" exact={true}>

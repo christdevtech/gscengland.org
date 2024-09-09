@@ -1,4 +1,5 @@
 import {
+  IonAlert,
   IonButton,
   IonCol,
   IonContent,
@@ -21,17 +22,26 @@ import {
 import React, { useEffect, useState, useCallback } from "react";
 import TopMenu from "../../components/TopMenu";
 import Container from "../../components/Container";
-import { useParams } from "react-router";
+import { useHistory, useParams } from "react-router";
 import { IonDatetime } from "@ionic/react";
 import { useDropzone } from "react-dropzone";
 import { cloudUpload, trashBinOutline } from "ionicons/icons";
 import axios from "axios";
 import { useGlobalAuth } from "../../AuthContext";
 import { useForm } from "react-hook-form";
+import { GSCEvent } from "../../interfaces";
+import {
+  doc,
+  setDoc,
+  updateDoc,
+  onSnapshot,
+  deleteDoc,
+} from "firebase/firestore";
+import { db } from "../../firebase";
 
 const EventComposer = () => {
   const { eventId } = useParams<{ eventId: string }>();
-  const { toastMessage } = useGlobalAuth() ?? {};
+  const { toastMessage, getGSCEvents } = useGlobalAuth() ?? {};
 
   interface ImageUploadResponse {
     success: boolean;
@@ -46,10 +56,23 @@ const EventComposer = () => {
   const [isRepeatingEvent, setIsRepeatingEvent] = useState(false);
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
+  const [GSCEventData, setGSCEventData] = useState<GSCEvent>();
+  const [deleteEvent, setDeleteEvent] = useState<boolean>(false);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files && e.target.files[0];
     setSelectedFile(file);
+  };
+
+  const isEventPast = (dateTimeString: string): boolean => {
+    if (dateTimeString === "") {
+      return false;
+    }
+    const today = new Date();
+    const inputDateTime = new Date(dateTimeString);
+
+    // Compare the input date and time with today's date and time
+    return inputDateTime.getTime() < today.getTime();
   };
 
   const handleIconClick = async () => {
@@ -135,6 +158,7 @@ const EventComposer = () => {
       return { success: false, message: "Error uploading images" };
     }
   };
+  const history = useHistory();
 
   const {
     handleSubmit,
@@ -142,10 +166,114 @@ const EventComposer = () => {
     register,
   } = useForm();
 
-  const onEventSubmit = (data: any) => {
-    console.log(data);
+  const generateEventId = (title: string): string => {
+    // Remove spaces and special characters, convert to lowercase
+    let eventId = title.replace(/[^\w\s]/gi, "").toLowerCase();
+
+    // Replace spaces with dashes
+    eventId = eventId.replace(/\s+/g, "-");
+
+    // Truncate if necessary (adjust the desired length as needed)
+    const maxLength = 20; // Adjust as needed
+    eventId = eventId.substring(0, maxLength);
+
+    const today = new Date().toISOString().substring(0, 19);
+    // Append a unique identifier (e.g., timestamp) for uniqueness
+    eventId += `-${today}`;
+
+    return eventId;
   };
 
+  const createGSCEvent = (GSCEvent: GSCEvent) => {
+    console.log("Creating event with data:", GSCEvent);
+
+    const docRef = doc(db, "events", GSCEvent.eventId);
+    setDoc(docRef, GSCEvent)
+      .then(() => {
+        if (toastMessage) toastMessage("Document successfully written!");
+        getGSCEvents;
+        history.push(`/event-composer/${GSCEvent.eventId}`);
+      })
+      .catch((error) => {
+        if (toastMessage)
+          toastMessage("Error Creating Event: Check Console for Details ");
+        console.log(error);
+      });
+  };
+
+  const updateGSCEvent = (GSCEvent: GSCEvent) => {
+    console.log("Updating event with data:", GSCEvent);
+
+    const docRef = doc(db, "events", GSCEvent.eventId);
+    updateDoc(docRef, { ...GSCEvent })
+      .then(() => {
+        if (toastMessage) toastMessage("Event successfully Updated!");
+        getGSCEvents;
+      })
+      .catch((error) => {
+        if (toastMessage)
+          toastMessage("Error Updating Event: Check Console for Details ");
+        console.log(error);
+      });
+  };
+
+  const onEventSubmit = async (data: any) => {
+    data.recurring = isRepeatingEvent;
+    data.start = startDate;
+    data.end = endDate;
+    data.imgUrl = eventFeaturedImage;
+    data.pictures = uploadedUrls;
+    if (eventId === "new") {
+      data.eventId = generateEventId(data.title);
+      createGSCEvent(data as GSCEvent);
+    } else {
+      data.eventId = eventId;
+      updateGSCEvent(data as GSCEvent);
+    }
+  };
+
+  useEffect(() => {
+    if (eventId !== "new") {
+      const eventRef = doc(db, "events", eventId);
+      onSnapshot(eventRef, (doc) => {
+        if (doc.exists()) {
+          const data = doc.data() as GSCEvent;
+          setGSCEventData(data);
+        }
+      });
+    }
+  }, [eventId]);
+
+  const onDeleteEvent = (eventId: string) => {
+    const eventRef = doc(db, "events", eventId);
+
+    deleteDoc(eventRef)
+      .then(() => {
+        if (toastMessage) toastMessage("Event successfully Deleted!");
+        getGSCEvents && getGSCEvents();
+        history.push("/admin");
+      })
+      .catch((error) => {
+        if (toastMessage)
+          toastMessage("Error Deleting Event: Check Console for Details ");
+        console.log(error);
+      });
+  };
+
+  //Update Form default values with GSCEventData when snapshot is successful
+  useEffect(() => {
+    if (GSCEventData) {
+      const { title, start, end, recurring, imgUrl, pictures, eventId } =
+        GSCEventData;
+      setIsRepeatingEvent(recurring);
+      setStartDate(start);
+      setEndDate(end);
+      setSelectedFile(null);
+      setSelectedImages([]);
+      setEventFeaturedImage(imgUrl);
+      setUploadedUrls(pictures);
+    }
+  }, [GSCEventData]);
   return (
     <IonPage>
       <IonContent>
@@ -155,30 +283,51 @@ const EventComposer = () => {
             {eventId === "new" ? (
               <h1>Composing New Event</h1>
             ) : (
-              <h1>Composing {eventId} event </h1>
+              <h1>Editing {GSCEventData?.title} </h1>
             )}
-
-            <IonButton>Add Event</IonButton>
-            <form>
+            {GSCEventData && (
+              <IonFab vertical="top" horizontal="end">
+                <IonFabButton
+                  color="danger"
+                  onClick={() => {
+                    setDeleteEvent(true);
+                  }}
+                >
+                  <IonIcon icon={trashBinOutline}></IonIcon>
+                </IonFabButton>
+              </IonFab>
+            )}
+            <form onSubmit={handleSubmit(onEventSubmit)}>
               <IonList>
                 <IonGrid>
                   <IonRow>
                     <IonCol>
                       <IonItem lines="none" color={"light"}>
                         <IonInput
+                          disabled={isEventPast(endDate)}
                           label="Event title"
-                          labelPlacement="floating"
+                          value={GSCEventData?.title}
+                          // labelPlacement="floating"
                           {...register("title", {
                             required: true,
                           })}
                         ></IonInput>
                       </IonItem>
+                      {errors.title && (
+                        <p className="form-error">The Title is required</p>
+                      )}
+                      {isEventPast(endDate) && (
+                        <p className="form-error">
+                          The End Date of the Event has past. Change the dates
+                          to edit the event
+                        </p>
+                      )}
                     </IonCol>
                   </IonRow>
                   <IonRow>
                     <IonCol>
                       <IonItem color={"light"} lines="none">
-                        <IonLabel>Event Image</IonLabel>
+                        <IonLabel>Event Featured Image</IonLabel>
                         <input
                           type="file"
                           accept={"image/jpeg, image/jpg, image/png, image/gif"}
@@ -195,8 +344,8 @@ const EventComposer = () => {
                       </IonItem>
                     </IonCol>
                     {eventFeaturedImage && (
-                      <IonCol>
-                        <IonImg src={eventFeaturedImage}></IonImg>{" "}
+                      <IonCol sizeSm="3">
+                        <IonImg src={eventFeaturedImage}></IonImg>
                       </IonCol>
                     )}
                   </IonRow>
@@ -207,8 +356,8 @@ const EventComposer = () => {
                       </IonLabel>
                       <IonItem lines="none">
                         <IonDatetime
+                          value={startDate ? startDate : null}
                           onIonChange={(e) => {
-                            // console.log(e.detail.value);
                             if (typeof e.detail.value == "string")
                               setStartDate(e.detail.value);
                           }}
@@ -221,8 +370,11 @@ const EventComposer = () => {
                       </IonLabel>
                       <IonItem lines="none">
                         <IonDatetime
+                          value={endDate ? endDate : null}
+                          min={startDate ? startDate : new Date().toISOString()}
                           onIonChange={(e) => {
-                            console.log(e.detail.value);
+                            if (typeof e.detail.value == "string")
+                              setEndDate(e.detail.value);
                           }}
                         ></IonDatetime>
                       </IonItem>
@@ -232,21 +384,49 @@ const EventComposer = () => {
                     <IonCol>
                       <IonItem color={"light"} lines="none">
                         <IonInput
+                          disabled={isEventPast(endDate)}
                           label="Venue"
-                          labelPlacement="floating"
+                          value={GSCEventData?.venue}
+                          // labelPlacement="floating"
+                          {...register("venue", { required: true })}
                         ></IonInput>
                       </IonItem>
+                      {errors.venue && (
+                        <p className="form-error">
+                          A Venue is required for an event to be submitted
+                        </p>
+                      )}
+                      {isEventPast(endDate) && (
+                        <p className="form-error">
+                          The End Date of the Event has past. Change the dates
+                          to edit the event
+                        </p>
+                      )}
                     </IonCol>
                   </IonRow>
                   <IonRow>
                     <IonCol>
                       <IonItem lines="none" color={"light"}>
                         <IonTextarea
+                          disabled={isEventPast(endDate)}
                           rows={6}
                           label="Description"
-                          labelPlacement="floating"
+                          value={GSCEventData?.description}
+                          // labelPlacement="floating"
+                          {...register("description", { required: true })}
                         ></IonTextarea>
                       </IonItem>
+                      {errors.description && (
+                        <p className="form-error">
+                          A Venue is required for an event to be submitted
+                        </p>
+                      )}
+                      {isEventPast(endDate) && (
+                        <p className="form-error">
+                          The End Date of the Event has past. Change the dates
+                          to edit the event
+                        </p>
+                      )}
                     </IonCol>
                   </IonRow>
                   <IonRow>
@@ -301,7 +481,7 @@ const EventComposer = () => {
                           <IonButton onClick={handleUpload}>
                             Upload Images
                           </IonButton>
-                        )}{" "}
+                        )}
                         {uploadedUrls.length > 0 && (
                           <h2>Successfully Uploaded Pictures</h2>
                         )}
@@ -340,6 +520,7 @@ const EventComposer = () => {
                     <IonCol>
                       <IonItem lines="none" color={"light"}>
                         <IonToggle
+                          disabled={isEventPast(endDate)}
                           enableOnOffLabels={true}
                           mode="ios"
                           color={"dark"}
@@ -358,6 +539,7 @@ const EventComposer = () => {
                           <IonSelect
                             label="Select Frequency"
                             labelPlacement="floating"
+                            value={GSCEventData?.frequency}
                             {...register("frequency", { required: true })}
                           >
                             <IonSelectOption value={"weekly"}>
@@ -374,9 +556,38 @@ const EventComposer = () => {
                       </IonCol>
                     )}
                   </IonRow>
+                  <IonRow>
+                    <IonCol>
+                      <IonButton type="submit">
+                        {eventId === "new" ? "Add Event" : "Update Event"}{" "}
+                      </IonButton>
+                    </IonCol>
+                  </IonRow>
                 </IonGrid>
               </IonList>
             </form>
+            <IonAlert
+              mode="ios"
+              header="Delete Event?"
+              message={"Are you sure you want to delete this event?"}
+              isOpen={deleteEvent}
+              buttons={[
+                {
+                  text: "Cancel",
+                  role: "cancel",
+                },
+                {
+                  text: "Delete",
+                  role: "confirm",
+                  handler: () => {
+                    GSCEventData && onDeleteEvent(GSCEventData.eventId);
+                  },
+                },
+              ]}
+              onDidDismiss={() => {
+                setDeleteEvent(false);
+              }}
+            ></IonAlert>
           </div>
         </Container>
       </IonContent>

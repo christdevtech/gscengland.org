@@ -75,7 +75,8 @@ const PageHeader: React.FC<PageHeroHeaderProps> = ({
                     background: `url('${bgImg}')`,
                     backgroundSize: "cover",
                     backgroundPosition: "center",
-                  }}>
+                  }}
+                >
                   <h1>Peace</h1>
                 </SwiperSlide>
                 <SwiperSlide
@@ -84,7 +85,8 @@ const PageHeader: React.FC<PageHeroHeaderProps> = ({
                     background: `url('${prayer1}')`,
                     backgroundSize: "cover",
                     backgroundPosition: "center",
-                  }}>
+                  }}
+                >
                   <h1>Joy</h1>
                 </SwiperSlide>
               </Swiper>
@@ -99,7 +101,8 @@ const PageHeader: React.FC<PageHeroHeaderProps> = ({
             backgroundSize: "cover",
             backgroundRepeat: "no-repeat",
             backgroundPosition: "center",
-          }}>
+          }}
+        >
           <IonRow>
             <IonCol>
               {title.map((title, index) => (
@@ -108,14 +111,16 @@ const PageHeader: React.FC<PageHeroHeaderProps> = ({
                   style={{
                     display: index === activeTextIndex ? "block" : "none",
                   }}
-                  key={index}>
+                  key={index}
+                >
                   {title}
                 </h1>
               ))}
               {subText && (
                 <p
-                  className="subText m-auto"
-                  style={{ width: "min(95%,900px)" }}>
+                  className="subText m-auto ion-padding-bottom"
+                  style={{ width: "min(95%,900px)" }}
+                >
                   {subText}
                 </p>
               )}
@@ -123,7 +128,8 @@ const PageHeader: React.FC<PageHeroHeaderProps> = ({
                 <IonButton
                   color={"light"}
                   size="large"
-                  onClick={() => handleLink(button.url)}>
+                  onClick={() => handleLink(button.url)}
+                >
                   {button.text}
                 </IonButton>
               )}

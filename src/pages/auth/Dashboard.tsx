@@ -17,7 +17,7 @@ import EventManager from "../../components/EventManager";
 
 const Dashboard = () => {
   const { user, signOut, toastMessage } = useGlobalAuth() ?? {};
-  const [activePage, setActivePage] = useState("monthDataUpdater");
+  const [activePage, setActivePage] = useState("eventsManager");
 
   const handleToggleActivePage = (page: string) => {
     toastMessage?.(page);

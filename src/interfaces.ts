@@ -31,15 +31,14 @@ export interface MonthData {
 }
 
 export interface GSCEvent {
-  eventId: string;
-  title: string;
-  date: { start: string; end: string };
-  venue: string;
   description: string;
+  end: string;
+  eventId: string;
+  frequency?: "weekly" | "monthly" | "yearly";
   imgUrl: string;
   pictures: string[];
-  recurring: {
-    recurringstate: boolean;
-    frequency?: "weekly" | "monthly" | "yearly";
-  };
+  recurring: boolean;
+  start: string;
+  title: string;
+  venue: string;
 }

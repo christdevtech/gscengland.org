@@ -11,7 +11,7 @@ if ($today === '') {
     exit;
 }
 
-$uploadDirectory = 'events/' . $today . '/'; // Directory to store uploaded images with the string value
+$uploadDirectory = 'event-images/' . $today . '/'; // Directory to store uploaded images with the string value
 
 if (!file_exists($uploadDirectory)) {
     mkdir($uploadDirectory, 0777, true); // Create the directory if it doesn't exist
